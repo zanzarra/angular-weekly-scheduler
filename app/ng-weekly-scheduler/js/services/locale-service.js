@@ -7,8 +7,8 @@ angular.module('weeklySchedulerI18N')
       doys: {'de-de': 4, 'en-gb': 4, 'en-us': 6, 'fr-fr': 4},
       lang: {
         'de-de': {month: 'Monat', weekNb: 'Wochenummer', addNew: 'Hinzufügen'},
-        'en-gb': {month: 'Month', weekNb: 'Week #', addNew: 'Add'},
-        'en-us': {month: 'Month', weekNb: 'Week #', addNew: 'Add'},
+        'en-gb': {month: 'Month', weekNb: 'Week #', addNew: 'Add', dayNb: 'Day #'},
+        'en-us': {month: 'Month', weekNb: 'Week #', addNew: 'Add', dayNb: 'Day #'},
         'fr-fr': {month: 'Mois', weekNb: 'N° de semaine', addNew: 'Ajouter'}
       }
     };
@@ -66,3 +66,5 @@ angular.module('weeklySchedulerI18N')
       };
     }];
   }]);
+
+

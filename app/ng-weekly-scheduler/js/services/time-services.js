@@ -34,6 +34,9 @@ angular.module('weeklyScheduler')
       weekDiff: function (start, end) {
         return end.clone().endOf(WEEK).diff(start.clone().startOf(WEEK), WEEK) + 1;
       },
+			dayDiff: function (start, end) {
+				return end.clone().endOf(DAY).diff(start.clone().startOf(DAY), DAY) + 1;
+			},
       monthDiff: function (start, end) {
         return end.clone().endOf(MONTH).diff(start.clone().startOf(MONTH), MONTH) + 1;
       },

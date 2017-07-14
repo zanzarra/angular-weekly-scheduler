@@ -25,12 +25,14 @@ angular.module('weeklyScheduler')
       // Calculate max date of all scheduled events
       var maxDate = (schedules ? schedules.reduce(function (maxDate, slot) {
         return timeService.compare(slot.end, 'isAfter', maxDate);
-      }, now) : now).clone().add(1, 'year').endOf('week');
+      }, now) : now).clone().add(1, 'month').endOf('week');
 
       // Calculate nb of weeks covered by minDate => maxDate
       var nbWeeks = timeService.weekDiff(minDate, maxDate);
 
-      var result = angular.extend(options, {minDate: minDate, maxDate: maxDate, nbWeeks: nbWeeks});
+			var nbDays = timeService.dayDiff(minDate, maxDate);
+
+      var result = angular.extend(options, {minDate: minDate, maxDate: maxDate, nbWeeks: nbWeeks, nbDays: nbDays});
       // Log configuration
       $log.debug('Weekly Scheduler configuration:', result);
 
