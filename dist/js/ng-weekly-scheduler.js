@@ -60,7 +60,12 @@ angular.module('weeklyScheduler')
       for (i = 0; i < tickcount; i++) {
         var child = gridItemEl.clone();
         if (angular.isUndefined(attrs.noText)) {
-          child.text(now.add(i && 1, 'day').date());
+          var dateTmp = now.add(i && 1, 'day');
+          var dayNumber =  dateTmp.day();
+          child.text(dateTmp.date());
+          if (dayNumber === 0 || dayNumber === 6) {
+            child[0].classList.add('weekend');
+          }
         }
         element.append(child);
       }
@@ -79,6 +84,7 @@ angular.module('weeklyScheduler')
       }
     };
   }]);
+
 /*global GRID_TEMPLATE */
 angular.module('weeklyScheduler')
   .directive('monthlyGrid', ['weeklySchedulerTimeService', function (timeService) {
@@ -232,26 +238,41 @@ angular.module('weeklyScheduler')
       templateUrl: 'ng-weekly-scheduler/views/multi-slider.html',
       link: function (scope, element, attrs, schedulerCtrl) {
         var conf = schedulerCtrl.config;
+        console.log(33,attrs.size, schedulerCtrl.config);
+        var minEventDuration = schedulerCtrl.config.defaultDuration;
+				if (schedulerCtrl.config.timeSlot == 'week') {
+					minEventDuration = schedulerCtrl.config.weekDuration;
+				} else if (schedulerCtrl.config.timeSlot == 'day') {
+					minEventDuration = schedulerCtrl.config.dayDuration;
+        } else if (schedulerCtrl.config.timeSlot == 'month') {
+					minEventDuration = schedulerCtrl.config.monthDuration;
+        }
 
         // The default scheduler block size when adding a new item
-        var defaultNewScheduleSize = parseInt(attrs.size) || 8;
+        var defaultNewScheduleSize = parseInt(attrs.size) || minEventDuration;
 
         var valToPixel = function (val) {
-          var percent = val / (conf.nbWeeks);
+          // var percent = val / (conf.nbWeeks);
+					var percent = val / (conf.nbDays);
           return Math.floor(percent * element[0].clientWidth + 0.5);
         };
 
         var pixelToVal = function (pixel) {
           var percent = pixel / element[0].clientWidth;
-          return Math.floor(percent * (conf.nbWeeks) + 0.5);
+          // return Math.floor(percent * (conf.nbWeeks) + 0.5);
+					return Math.floor(percent * (conf.nbDays) + 0.5);
         };
 
         var addSlot = function (start, end) {
           start = start >= 0 ? start : 0;
-          end = end <= conf.nbWeeks ? end : conf.nbWeeks;
+          // end = end <= conf.nbWeeks ? end : conf.nbWeeks;
+					end = end <= conf.nbDays ? end : conf.nbDays;
 
-          var startDate = timeService.addWeek(conf.minDate, start);
-          var endDate = timeService.addWeek(conf.minDate, end);
+          // var startDate = timeService.addWeek(conf.minDate, start);
+          // var endDate = timeService.addWeek(conf.minDate, end);
+
+					var startDate = timeService.addDay(conf.minDate, start);
+					var endDate = timeService.addDay(conf.minDate, end);
 
           scope.$apply(function () {
             var item = scope.item;
@@ -299,7 +320,12 @@ angular.module('weeklyScheduler')
 
     var defaultOptions = {
       monoSchedule: false,
-      selector: '.schedule-area-container'
+      selector: '.schedule-area-container',
+			timeSlot: 'week',
+			dayDuration: 3,
+      weekDuration: 7,
+      monthDuration: 30,
+      defaultDuration: 5,
     };
 
     /**
@@ -311,6 +337,16 @@ angular.module('weeklyScheduler')
     function config(schedules, options) {
       var now = moment();
 
+      console.log(1, options);
+      var monthsToAddedToMaxDate = 3;
+			if (options.timeSlot === 'week') {
+				monthsToAddedToMaxDate = 3;
+			} else if (options.timeSlot === 'day') {
+				monthsToAddedToMaxDate = 1;
+			} else if (options.timeSlot === 'month') {
+				monthsToAddedToMaxDate = 12;
+			}
+
       // Calculate min date of all scheduled events
       var minDate = (schedules ? schedules.reduce(function (minDate, slot) {
         return timeService.compare(slot.start, 'isBefore', minDate);
@@ -319,7 +355,7 @@ angular.module('weeklyScheduler')
       // Calculate max date of all scheduled events
       var maxDate = (schedules ? schedules.reduce(function (maxDate, slot) {
         return timeService.compare(slot.end, 'isAfter', maxDate);
-      }, now) : now).clone().add(1, 'month').endOf('week');
+      }, now) : now).clone().add(monthsToAddedToMaxDate, 'month').endOf('week');
 
       // Calculate nb of weeks covered by minDate => maxDate
       var nbWeeks = timeService.weekDiff(minDate, maxDate);
@@ -385,7 +421,8 @@ angular.module('weeklyScheduler')
             }, []), options);
 
             // Then resize schedule area knowing the number of weeks in scope
-            el.firstChild.style.width = schedulerCtrl.config.nbWeeks / 53 * 200 + '%';
+            // el.firstChild.style.width = schedulerCtrl.config.nbWeeks / 53 * 200 + '%';
+						el.firstChild.style.width = schedulerCtrl.config.nbDays / 80 * 200 + '%';
 
             // Finally, run the sub directives listeners
             schedulerCtrl.$modelChangeListeners.forEach(function (listener) {
@@ -442,7 +479,8 @@ angular.module('weeklyScheduler')
 
         var pixelToVal = function (pixel) {
           var percent = pixel / containerEl[0].clientWidth;
-          return Math.floor(percent * conf.nbWeeks + 0.5);
+          // return Math.floor(percent * conf.nbWeeks + 0.5);
+					return Math.floor(percent * conf.nbDays + 0.5);
         };
 
         var mergeOverlaps = function () {
@@ -517,6 +555,7 @@ angular.module('weeklyScheduler')
             containerEl.attr('no-add', true);
 
             valuesOnDragStart = {start: ngModelCtrl.$viewValue.start, end: ngModelCtrl.$viewValue.end};
+            console.log(valuesOnDragStart);
           };
 
           scope.endDrag = function () {
@@ -551,7 +590,8 @@ angular.module('weeklyScheduler')
             } else {
               var newEnd = Math.round(valuesOnDragStart.end + delta);
 
-              if (ui.end !== newEnd && newEnd >= ui.start + 1 && newEnd <= conf.nbWeeks) {
+              // if (ui.end !== newEnd && newEnd >= ui.start + 1 && newEnd <= conf.nbWeeks) {
+							if (ui.end !== newEnd && newEnd >= ui.start + 1 && newEnd <= conf.nbDays) {
                 ngModelCtrl.$setViewValue({
                   start: ui.start,
                   end: newEnd
@@ -569,7 +609,8 @@ angular.module('weeklyScheduler')
             var newStart = Math.round(valuesOnDragStart.start + delta);
             var newEnd = Math.round(newStart + duration);
 
-            if (ui.start !== newStart && newStart >= 0 && newEnd <= conf.nbWeeks) {
+            // if (ui.start !== newStart && newStart >= 0 && newEnd <= conf.nbWeeks) {
+						if (ui.start !== newStart && newStart >= 0 && newEnd <= conf.nbDays) {
               ngModelCtrl.$setViewValue({
                 start: newStart,
                 end: newEnd
@@ -584,8 +625,10 @@ angular.module('weeklyScheduler')
 
         //// UI -> model ////////////////////////////////////
         ngModelCtrl.$parsers.push(function onUIChange(ui) {
-          ngModelCtrl.$modelValue.start = timeService.addWeek(conf.minDate, ui.start).toDate();
-          ngModelCtrl.$modelValue.end = timeService.addWeek(conf.minDate, ui.end).toDate();
+          // ngModelCtrl.$modelValue.start = timeService.addWeek(conf.minDate, ui.start).toDate();
+          // ngModelCtrl.$modelValue.end = timeService.addWeek(conf.minDate, ui.end).toDate();
+					ngModelCtrl.$modelValue.start = timeService.addDay(conf.minDate, ui.start).toDate();
+					ngModelCtrl.$modelValue.end = timeService.addDay(conf.minDate, ui.end).toDate();
           //$log.debug('PARSER :', ngModelCtrl.$modelValue.$$hashKey, index, scope.$index, ngModelCtrl.$modelValue);
           schedulerCtrl.on.change(index, scope.$index, ngModelCtrl.$modelValue);
           return ngModelCtrl.$modelValue;
@@ -594,8 +637,10 @@ angular.module('weeklyScheduler')
         //// model -> UI ////////////////////////////////////
         ngModelCtrl.$formatters.push(function onModelChange(model) {
           var ui = {
-            start: timeService.weekPreciseDiff(conf.minDate, moment(model.start), true),
-            end: timeService.weekPreciseDiff(conf.minDate, moment(model.end), true)
+						// start: timeService.weekPreciseDiff(conf.minDate, moment(model.start), true),
+						// end: timeService.weekPreciseDiff(conf.minDate, moment(model.end), true)
+						start: timeService.dayPreciseDiff(conf.minDate, moment(model.start), true),
+						end: timeService.dayPreciseDiff(conf.minDate, moment(model.end), true)
           };
           //$log.debug('FORMATTER :', index, scope.$index, ui);
           return ui;
@@ -604,8 +649,10 @@ angular.module('weeklyScheduler')
         ngModelCtrl.$render = function () {
           var ui = ngModelCtrl.$viewValue;
           var css = {
-            left: ui.start / conf.nbWeeks * 100 + '%',
-            width: (ui.end - ui.start) / conf.nbWeeks * 100 + '%'
+            // left: ui.start / conf.nbWeeks * 100 + '%',
+            // width: (ui.end - ui.start) / conf.nbWeeks * 100 + '%'
+						left: ui.start / conf.nbDays * 100 + '%',
+						width: (ui.end - ui.start) / conf.nbDays * 100 + '%'
           };
 
           //$log.debug('RENDER :', index, scope.$index, css);
@@ -726,6 +773,12 @@ angular.module('weeklyScheduler')
       weekDiff: function (start, end) {
         return end.clone().endOf(WEEK).diff(start.clone().startOf(WEEK), WEEK) + 1;
       },
+			addDay: function (moment, nbDay) {
+				return moment.clone().add(nbDay, DAY);
+			},
+			dayPreciseDiff: function (start, end) {
+				return end.clone().diff(start.clone(), DAY, true);
+			},
 			dayDiff: function (start, end) {
 				return end.clone().endOf(DAY).diff(start.clone().startOf(DAY), DAY) + 1;
 			},
@@ -765,7 +818,7 @@ angular.module('ng-weekly-scheduler/views/multi-slider.html', []).run(['$templat
 
 angular.module('ng-weekly-scheduler/views/weekly-scheduler.html', []).run(['$templateCache', function($templateCache) {
   $templateCache.put('ng-weekly-scheduler/views/weekly-scheduler.html',
-    '<div class=labels><div class="srow text-right">{{schedulerCtrl.config.labels.month || \'Month\'}}</div><div class="srow text-right">{{schedulerCtrl.config.labels.weekNb || \'Week number\'}}</div><div class="srow text-right">{{schedulerCtrl.config.labels.dayNb || \'Day number\'}}</div><div class=schedule-animate ng-repeat="item in schedulerCtrl.items" inject></div></div><div class=schedule-area-container><div class=schedule-area><div class="srow timestamps"><monthly-grid class=grid-container></monthly-grid></div><div class="srow timestamps"><weekly-grid class=grid-container></weekly-grid></div><div class="srow timestamps daily"><daily-grid class=grid-container></daily-grid></div><div class="srow schedule-animate" ng-repeat="item in schedulerCtrl.items"><weekly-grid class="grid-container striped" no-text></weekly-grid><multi-slider index={{$index}}></multi-slider></div></div></div>');
+    '<div class=labels><div class="srow text-right">{{schedulerCtrl.config.labels.month || \'Month\'}}</div><div class="srow text-right">{{schedulerCtrl.config.labels.weekNb || \'Week number\'}}</div><div class="srow text-right">{{schedulerCtrl.config.labels.dayNb || \'Day #\'}}</div><div class=schedule-animate ng-repeat="item in schedulerCtrl.items" inject></div></div><div class=schedule-area-container><div class=schedule-area><div class="srow timestamps"><monthly-grid class=grid-container></monthly-grid></div><div class="srow timestamps weekly"><weekly-grid class=grid-container></weekly-grid></div><div class="srow timestamps daily"><daily-grid class=grid-container></daily-grid></div><div class="srow schedule-animate" ng-repeat="item in schedulerCtrl.items"><daily-grid class="grid-container striped" no-text></daily-grid><multi-slider index={{$index}}></multi-slider></div></div></div>');
 }]);
 
 angular.module('ng-weekly-scheduler/views/weekly-slot.html', []).run(['$templateCache', function($templateCache) {

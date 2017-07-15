@@ -200,3 +200,8 @@ multi-slider weekly-slot.active {
   display: none;
   opacity: 1;
 }
+
+.weekend {
+  color: #fff;
+  background-color: #f00;
+}

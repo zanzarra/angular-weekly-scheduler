@@ -31,6 +31,15 @@
     </div>
 
     <div>
+      <label for="timeSlot">Choose a convenient time slot:</label>
+      <select id="timeSlot" ng-model="model.options.timeSlot" ng-change="demo.onTimeSlotChange()">
+        <option value="month" selected>Month</option>
+        <option value="week" selected>Week</option>
+        <option value="day">Day</option>
+      </select>
+    </div>
+
+    <div>
       <code>$scope.model</code>
       <pre ng-bind="model | json" style="max-height: 200px;"></pre>
     </div>

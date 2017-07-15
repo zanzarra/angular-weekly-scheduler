@@ -5,7 +5,12 @@ angular.module('weeklyScheduler')
 
     var defaultOptions = {
       monoSchedule: false,
-      selector: '.schedule-area-container'
+      selector: '.schedule-area-container',
+			timeSlot: 'week',
+			dayDuration: 3,
+      weekDuration: 7,
+      monthDuration: 30,
+      defaultDuration: 5,
     };
 
     /**
@@ -17,6 +22,16 @@ angular.module('weeklyScheduler')
     function config(schedules, options) {
       var now = moment();
 
+      console.log(1, options);
+      var monthsToAddedToMaxDate = 3;
+			if (options.timeSlot === 'week') {
+				monthsToAddedToMaxDate = 3;
+			} else if (options.timeSlot === 'day') {
+				monthsToAddedToMaxDate = 1;
+			} else if (options.timeSlot === 'month') {
+				monthsToAddedToMaxDate = 12;
+			}
+
       // Calculate min date of all scheduled events
       var minDate = (schedules ? schedules.reduce(function (minDate, slot) {
         return timeService.compare(slot.start, 'isBefore', minDate);
@@ -25,7 +40,7 @@ angular.module('weeklyScheduler')
       // Calculate max date of all scheduled events
       var maxDate = (schedules ? schedules.reduce(function (maxDate, slot) {
         return timeService.compare(slot.end, 'isAfter', maxDate);
-      }, now) : now).clone().add(1, 'month').endOf('week');
+      }, now) : now).clone().add(monthsToAddedToMaxDate, 'month').endOf('week');
 
       // Calculate nb of weeks covered by minDate => maxDate
       var nbWeeks = timeService.weekDiff(minDate, maxDate);
@@ -91,7 +106,8 @@ angular.module('weeklyScheduler')
             }, []), options);
 
             // Then resize schedule area knowing the number of weeks in scope
-            el.firstChild.style.width = schedulerCtrl.config.nbWeeks / 53 * 200 + '%';
+            // el.firstChild.style.width = schedulerCtrl.config.nbWeeks / 53 * 200 + '%';
+						el.firstChild.style.width = schedulerCtrl.config.nbDays / 80 * 200 + '%';
 
             // Finally, run the sub directives listeners
             schedulerCtrl.$modelChangeListeners.forEach(function (listener) {

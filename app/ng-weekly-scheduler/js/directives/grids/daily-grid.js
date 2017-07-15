@@ -16,7 +16,12 @@ angular.module('weeklyScheduler')
       for (i = 0; i < tickcount; i++) {
         var child = gridItemEl.clone();
         if (angular.isUndefined(attrs.noText)) {
-          child.text(now.add(i && 1, 'day').date());
+          var dateTmp = now.add(i && 1, 'day');
+          var dayNumber =  dateTmp.day();
+          child.text(dateTmp.date());
+          if (dayNumber === 0 || dayNumber === 6) {
+            child[0].classList.add('weekend');
+          }
         }
         element.append(child);
       }

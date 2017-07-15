@@ -1,7 +1,7 @@
 <div class="labels">
   <div class="srow text-right">{{schedulerCtrl.config.labels.month || 'Month'}}</div>
   <div class="srow text-right">{{schedulerCtrl.config.labels.weekNb || 'Week number'}}</div>
-  <div class="srow text-right">{{schedulerCtrl.config.labels.dayNb || 'Day number'}}</div>
+  <div class="srow text-right">{{schedulerCtrl.config.labels.dayNb || 'Day #'}}</div>
   <div class="schedule-animate" ng-repeat="item in schedulerCtrl.items" inject></div>
 </div>
 
@@ -12,7 +12,7 @@
       <monthly-grid class="grid-container"></monthly-grid>
     </div>
 
-    <div class="srow timestamps">
+    <div class="srow timestamps weekly">
       <weekly-grid class="grid-container"></weekly-grid>
     </div>
 
@@ -21,7 +21,7 @@
     </div>
 
     <div class="srow schedule-animate" ng-repeat="item in schedulerCtrl.items">
-      <weekly-grid class="grid-container striped" no-text></weekly-grid>
+      <daily-grid class="grid-container striped" no-text></daily-grid>
       <multi-slider index="{{$index}}"></multi-slider>
     </div>
   </div>
