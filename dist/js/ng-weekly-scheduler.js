@@ -240,11 +240,11 @@ angular.module('weeklyScheduler')
         var conf = schedulerCtrl.config;
         console.log(33,attrs.size, schedulerCtrl.config);
         var minEventDuration = schedulerCtrl.config.defaultDuration;
-				if (schedulerCtrl.config.timeSlot == 'week') {
+				if (schedulerCtrl.config.timeSlot === 'week') {
 					minEventDuration = schedulerCtrl.config.weekDuration;
-				} else if (schedulerCtrl.config.timeSlot == 'day') {
+				} else if (schedulerCtrl.config.timeSlot === 'day') {
 					minEventDuration = schedulerCtrl.config.dayDuration;
-        } else if (schedulerCtrl.config.timeSlot == 'month') {
+        } else if (schedulerCtrl.config.timeSlot === 'month') {
 					minEventDuration = schedulerCtrl.config.monthDuration;
         }
 
@@ -453,6 +453,18 @@ angular.module('weeklyScheduler')
            * Listen to $locale change (brought by external module weeklySchedulerI18N)
            */
           scope.$on('weeklySchedulerLocaleChanged', function (e, labels) {
+            console.log(141, labels);
+            if (schedulerCtrl.config) {
+              schedulerCtrl.config.labels = labels;
+            }
+            onModelChange(angular.copy($parse(attrs.items)(scope), []));
+          });
+
+          /**
+           * Listen to $locale change (brought by external module weeklySchedulerI18N)
+           */
+          scope.$on('weeklySchedulerTimeSlotChanged', function (e, labels) {
+            console.log('www', scope.model.options.timeSlot);
             if (schedulerCtrl.config) {
               schedulerCtrl.config.labels = labels;
             }
@@ -663,6 +675,11 @@ angular.module('weeklyScheduler')
           // Simple change object reference so that ngModel triggers formatting & rendering
           scope.schedule = angular.copy(scope.schedule);
         });
+
+        scope.$on('weeklySchedulerTimeSlotChanged', function () {
+          // Simple change object reference so that ngModel triggers formatting & rendering
+          scope.schedule = angular.copy(scope.schedule);
+        });
       }
     };
   }]);
@@ -722,13 +739,14 @@ angular.module('weeklySchedulerI18N')
       }
 
       $rootScope.$on('$localeChangeSuccess', function () {
-        $rootScope.$broadcast('weeklySchedulerLocaleChanged', getLang());
+        $rootScope.$broadcast('weeklySchedulerLocaleChanged');
       });
 
       return {
         $locale: $locale,
         getLang: getLang,
         set: function (key) {
+          // return key;
           return tmhDynamicLocale.set(key);
         }
       };
@@ -809,6 +827,29 @@ angular.module('weeklyScheduler')
       }
     };
   }]);
+angular.module('timeSlot', []);
+
+angular.module('timeSlot')
+  .provider('timeSlotService', function () {
+    this.set = function() {
+      console.log('wssss');
+    };
+    this.$get = ['$rootScope', '$locale', 'tmhDynamicLocale', function ($rootScope, $locale, tmhDynamicLocale) {
+    // this.$get = ['$rootScope', function ($rootScope) {
+    //
+    //   // $rootScope.$on('$TimeSlotChangeSuccess', function () {
+    //   //   $rootScope.$broadcast('weeklySchedulerTimeSlotChanged');
+    //   // });
+    //
+    //   return {
+    //     set: function (key) {
+    //       return key;
+    //     }
+    //   };
+    // }];
+  });
+
+
 angular.module('ngWeeklySchedulerTemplates', ['ng-weekly-scheduler/views/multi-slider.html', 'ng-weekly-scheduler/views/weekly-scheduler.html', 'ng-weekly-scheduler/views/weekly-slot.html']);
 
 angular.module('ng-weekly-scheduler/views/multi-slider.html', []).run(['$templateCache', function($templateCache) {

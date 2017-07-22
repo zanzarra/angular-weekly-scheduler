@@ -199,6 +199,11 @@ angular.module('weeklyScheduler')
           // Simple change object reference so that ngModel triggers formatting & rendering
           scope.schedule = angular.copy(scope.schedule);
         });
+
+        scope.$on('weeklySchedulerTimeSlotChanged', function () {
+          // Simple change object reference so that ngModel triggers formatting & rendering
+          scope.schedule = angular.copy(scope.schedule);
+        });
       }
     };
   }]);

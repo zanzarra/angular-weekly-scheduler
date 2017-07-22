@@ -1,4 +1,4 @@
-angular.module('demoApp', ['ngAnimate', 'weeklyScheduler', 'weeklySchedulerI18N'])
+angular.module('demoApp', ['ngAnimate', 'weeklyScheduler', 'weeklySchedulerI18N', 'timeSlot'])
 
   .config(['weeklySchedulerLocaleServiceProvider', function (localeServiceProvider) {
     localeServiceProvider.configure({
@@ -16,12 +16,12 @@ angular.module('demoApp', ['ngAnimate', 'weeklyScheduler', 'weeklySchedulerI18N'
     };
   })
 
-  .controller('DemoController', ['$scope', 'weeklySchedulerLocaleService', '$log',
-    function ($scope, localeService, $log) {
+  .controller('DemoController', ['$scope', '$timeout', '$rootScope', 'weeklySchedulerLocaleService', 'timeSlotService', '$log',
+    function ($scope, $timeout, $rootScope, localeService, timeSlotService, $log) {
 
       $scope.model = {
         locale: localeService.$locale.id,
-        options: {dayDuration: 3, weekDuration: 7, monthDuration: 30, timeSlot: 'month'},
+        options: {dayDuration: 3, weekDuration: 7, monthDuration: 30, timeSlot: 'day'},
         items: [{
           label: 'Item 1',
           editable: true,
@@ -31,23 +31,45 @@ angular.module('demoApp', ['ngAnimate', 'weeklyScheduler', 'weeklySchedulerI18N'
         }]
       };
 
+      // $timeout(function () {
+      //   $scope.model.items = $scope.model.items.concat([{
+      //     label: 'Item 2',
+      //     schedules: [
+      //       {start: moment('2016-05-03').toDate(), end: moment('2017-02-01').toDate()},
+      //       {start: moment('2015-11-20').toDate(), end: moment('2016-02-01').toDate()}
+      //     ]
+      //   }, {
+      //     label: 'Item 3',
+      //     schedules: [
+      //       {start: moment('2017-08-09').toDate(), end: moment('2017-08-21').toDate()},
+      //       {start: moment('2017-09-12').toDate(), end: moment('2017-10-12').toDate()}
+      //     ]
+      //   }]);
+      // }, 10000);
+
+      this.doSomething = function (itemIndex, scheduleIndex, scheduleValue) {
+        $log.debug('The model has changed!', itemIndex, scheduleIndex, scheduleValue);
+      };
+
       this.doSomething = function (itemIndex, scheduleIndex, scheduleValue) {
         $log.debug('The model has changed!', itemIndex, scheduleIndex, scheduleValue);
       };
 
       this.onLocaleChange = function () {
-        $log.debug('The locale is changing to', $scope.model.locale);
+        console.log('The locale is changing to', localeService.set($scope.model.locale).then());
+
         localeService.set($scope.model.locale).then(function ($locale) {
           $log.debug('The locale changed to', $locale.id);
         });
       };
 
 			this.onTimeSlotChange = function () {
-			  console.log('aaaaa');
-				$log.debug('The locale is changing to', $scope.model.options.timeSlot);
-				// localeService.set($scope.model.timeSlot).then(function ($locale) {
-				// 	$log.debug('The locale changed to', $locale.id);
-				// });
+			  console.log('aaaaa', $scope.model.options.timeSlot);
+        timeSlotService.set($scope.model.options.timeSlot);
+			  // console.log(timeSlotService.set($scope.model.options.timeSlot).then() );
+        // timeSlotService.set($scope.model.options.timeSlot).then(function () {
+        //   console.log('bbbbbb');
+        // });
 			};
 
 

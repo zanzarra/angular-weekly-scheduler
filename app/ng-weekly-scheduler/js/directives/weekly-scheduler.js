@@ -138,6 +138,18 @@ angular.module('weeklyScheduler')
            * Listen to $locale change (brought by external module weeklySchedulerI18N)
            */
           scope.$on('weeklySchedulerLocaleChanged', function (e, labels) {
+            console.log(141, labels);
+            if (schedulerCtrl.config) {
+              schedulerCtrl.config.labels = labels;
+            }
+            onModelChange(angular.copy($parse(attrs.items)(scope), []));
+          });
+
+          /**
+           * Listen to $locale change (brought by external module weeklySchedulerI18N)
+           */
+          scope.$on('weeklySchedulerTimeSlotChanged', function (e, labels) {
+            console.log('www', scope.model.options.timeSlot);
             if (schedulerCtrl.config) {
               schedulerCtrl.config.labels = labels;
             }

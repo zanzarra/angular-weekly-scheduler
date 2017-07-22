@@ -54,13 +54,14 @@ angular.module('weeklySchedulerI18N')
       }
 
       $rootScope.$on('$localeChangeSuccess', function () {
-        $rootScope.$broadcast('weeklySchedulerLocaleChanged', getLang());
+        $rootScope.$broadcast('weeklySchedulerLocaleChanged');
       });
 
       return {
         $locale: $locale,
         getLang: getLang,
         set: function (key) {
+          // return key;
           return tmhDynamicLocale.set(key);
         }
       };
