@@ -17,7 +17,7 @@
 
     <h1>Angularjs weekly scheduler</h1>
 
-    <h2 id="demo" class="page-header">1. Demo</h2>
+    <h2 class="page-header">1. Demo</h2>
 
     <div>
       <label for="language">Choose your language:</label>
@@ -31,12 +31,9 @@
     </div>
 
     <div>
-      <label for="timeSlot">Choose a convenient time slot:</label>
-      <select id="timeSlot" ng-model="model.options.timeSlot" ng-change="demo.onTimeSlotChange()">
-        <option value="month" selected>Month</option>
-        <option value="week" selected>Week</option>
-        <option value="day">Day</option>
-      </select>
+      <label for="radio_month">Month <input type="radio" value="month" ng-model="model.options.timeSlot" name="rating" id="radio_month" class="radio"></label>
+      <label for="radio_week">Week <input type="radio" value="week" ng-model="model.options.timeSlot" name="rating" id="radio_week" class="radio"></label>
+      <label for="radio_day">Day <input type="radio" value="day" ng-model="model.options.timeSlot" name="rating" id="radio_day" class="radio"></label>
     </div>
 
     <div>
@@ -44,11 +41,7 @@
       <pre ng-bind="model | json" style="max-height: 200px;"></pre>
     </div>
 
-    <weekly-scheduler class="scheduler"
-                      items="model.items"
-                      on-change="demo.doSomething"
-                      on-delete="demo.doSomething"
-                      options="model.options">
+    <weekly-scheduler class="scheduler" time-slot="{{ model.options.timeSlot }}" items="model.items" on-change="demo.doSomething" on-delete="demo.doSomething" options="model.options">
       <div class="srow">{{::$index + 1}}. {{item.label}}</div>
     </weekly-scheduler>
 

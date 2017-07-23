@@ -73,89 +73,90 @@ angular.module('weeklyScheduler')
         // Will hang our model change listeners
         this.$modelChangeListeners = [];
       }],
+
       controllerAs: 'schedulerCtrl',
       link: function (scope, element, attrs, schedulerCtrl) {
-        var optionsFn = $parse(attrs.options),
-          options = angular.extend(defaultOptions, optionsFn(scope) || {});
+        function loadDirective() {
+          var optionsFn = $parse(attrs.options),
+            options = angular.extend(defaultOptions, optionsFn(scope) || {});
 
-        // Get the schedule container element
-        var el = element[0].querySelector(defaultOptions.selector);
+          // Get the schedule container element
+          var el = element[0].querySelector(defaultOptions.selector);
 
-        function onModelChange(items) {
-          // Check items are present
-          if (items) {
+          function onModelChange(items) {
+            // Check items are present
+            if (items) {
 
-            // Check items are in an Array
-            if (!angular.isArray(items)) {
-              throw 'You should use weekly-scheduler directive with an Array of items';
+              // Check items are in an Array
+              if (!angular.isArray(items)) {
+                throw 'You should use weekly-scheduler directive with an Array of items';
+              }
+
+              // Keep track of our model (use it in template)
+              schedulerCtrl.items = items;
+
+              // First calculate configuration
+              schedulerCtrl.config = config(items.reduce(function (result, item) {
+                var schedules = item.schedules;
+
+                return result.concat(schedules && schedules.length ?
+                  // If in multiSlider mode, ensure a schedule array is present on each item
+                  // Else only use first element of schedule array
+                  (options.monoSchedule ? item.schedules = [schedules[0]] : schedules) :
+                  item.schedules = []
+                );
+              }, []), options);
+
+              // Then resize schedule area knowing the number of weeks in scope
+              // el.firstChild.style.width = schedulerCtrl.config.nbWeeks / 53 * 200 + '%';
+              el.firstChild.style.width = schedulerCtrl.config.nbDays / 80 * 200 + '%';
+
+              // Finally, run the sub directives listeners
+              schedulerCtrl.$modelChangeListeners.forEach(function (listener) {
+                listener(schedulerCtrl.config);
+              });
             }
+          }
 
-            // Keep track of our model (use it in template)
-            schedulerCtrl.items = items;
+          if (el) {
+            // Install mouse scrolling event listener for H scrolling
+            mouseScroll(el, 20);
 
-            // First calculate configuration
-            schedulerCtrl.config = config(items.reduce(function (result, item) {
-              var schedules = item.schedules;
+            schedulerCtrl.on = {
+              change: function (itemIndex, scheduleIndex, scheduleValue) {
+                var onChangeFunction = $parse(attrs.onChange)(scope);
+                if (angular.isFunction(onChangeFunction)) {
+                  return onChangeFunction(itemIndex, scheduleIndex, scheduleValue);
+                }
+              }
+            };
 
-              return result.concat(schedules && schedules.length ?
-                // If in multiSlider mode, ensure a schedule array is present on each item
-                // Else only use first element of schedule array
-                (options.monoSchedule ? item.schedules = [schedules[0]] : schedules) :
-                item.schedules = []
-              );
-            }, []), options);
+            /**
+             * Watch the model items
+             */
+            scope.$watchCollection(attrs.items, onModelChange);
 
-            // Then resize schedule area knowing the number of weeks in scope
-            // el.firstChild.style.width = schedulerCtrl.config.nbWeeks / 53 * 200 + '%';
-						el.firstChild.style.width = schedulerCtrl.config.nbDays / 80 * 200 + '%';
-
-            // Finally, run the sub directives listeners
-            schedulerCtrl.$modelChangeListeners.forEach(function (listener) {
-              listener(schedulerCtrl.config);
+            /**
+             * Listen to $locale change (brought by external module weeklySchedulerI18N)
+             */
+            scope.$on('weeklySchedulerLocaleChanged', function (e, labels) {
+              if (schedulerCtrl.config) {
+                schedulerCtrl.config.labels = labels;
+              }
+              onModelChange(angular.copy($parse(attrs.items)(scope), []));
             });
+
           }
         }
+        var loadFirst = true;
 
-        if (el) {
-          // Install mouse scrolling event listener for H scrolling
-          mouseScroll(el, 20);
-
-          schedulerCtrl.on = {
-            change: function (itemIndex, scheduleIndex, scheduleValue) {
-              var onChangeFunction = $parse(attrs.onChange)(scope);
-              if (angular.isFunction(onChangeFunction)) {
-                return onChangeFunction(itemIndex, scheduleIndex, scheduleValue);
-              }
-            }
-          };
-
-          /**
-           * Watch the model items
-           */
-          scope.$watchCollection(attrs.items, onModelChange);
-
-          /**
-           * Listen to $locale change (brought by external module weeklySchedulerI18N)
-           */
-          scope.$on('weeklySchedulerLocaleChanged', function (e, labels) {
-            console.log(141, labels);
-            if (schedulerCtrl.config) {
-              schedulerCtrl.config.labels = labels;
-            }
-            onModelChange(angular.copy($parse(attrs.items)(scope), []));
-          });
-
-          /**
-           * Listen to $locale change (brought by external module weeklySchedulerI18N)
-           */
-          scope.$on('weeklySchedulerTimeSlotChanged', function (e, labels) {
-            console.log('www', scope.model.options.timeSlot);
-            if (schedulerCtrl.config) {
-              schedulerCtrl.config.labels = labels;
-            }
-            onModelChange(angular.copy($parse(attrs.items)(scope), []));
-          });
-        }
+        attrs.$observe('timeSlot', function(data) {
+          console.log("Updated data ", data, scope.model.items);
+          if (loadFirst) {
+            loadFirst = true;
+            loadDirective();
+          }
+        }, true);
       }
     };
   }]);

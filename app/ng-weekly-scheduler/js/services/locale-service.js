@@ -25,7 +25,6 @@ angular.module('weeklySchedulerI18N')
     };
 
     this.$get = ['$rootScope', '$locale', 'tmhDynamicLocale', function ($rootScope, $locale, tmhDynamicLocale) {
-
       var momentLocaleCache = {};
 
       function getLang() {
@@ -57,11 +56,11 @@ angular.module('weeklySchedulerI18N')
         $rootScope.$broadcast('weeklySchedulerLocaleChanged');
       });
 
+
       return {
         $locale: $locale,
         getLang: getLang,
         set: function (key) {
-          // return key;
           return tmhDynamicLocale.set(key);
         }
       };

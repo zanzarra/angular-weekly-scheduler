@@ -19,7 +19,7 @@ angular.module('weeklyScheduler')
       templateUrl: 'ng-weekly-scheduler/views/multi-slider.html',
       link: function (scope, element, attrs, schedulerCtrl) {
         var conf = schedulerCtrl.config;
-        console.log(33,attrs.size, schedulerCtrl.config);
+
         var minEventDuration = schedulerCtrl.config.defaultDuration;
 				if (schedulerCtrl.config.timeSlot === 'week') {
 					minEventDuration = schedulerCtrl.config.weekDuration;
