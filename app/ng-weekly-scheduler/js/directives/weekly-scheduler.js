@@ -151,7 +151,7 @@ angular.module('weeklyScheduler')
         var loadFirst = true;
 
         attrs.$observe('timeSlot', function(data) {
-          console.log("Updated data ", data, scope.model.items);
+          console.log('Updated data ', data, scope.model.items);
           if (loadFirst) {
             loadFirst = true;
             loadDirective();

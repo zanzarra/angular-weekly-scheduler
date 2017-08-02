@@ -22,7 +22,7 @@
 
     <div class="srow schedule-animate" ng-repeat="item in schedulerCtrl.items">
       <daily-grid class="grid-container striped" no-text></daily-grid>
-      <multi-slider index="{{$index}}"></multi-slider>
+      <multi-slider index="{{$index}}" time-slot="{{ model.options.timeSlot }}"></multi-slider>
     </div>
   </div>
 </div>

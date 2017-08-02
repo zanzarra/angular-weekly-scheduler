@@ -237,79 +237,93 @@ angular.module('weeklyScheduler')
       require: '^weeklyScheduler',
       templateUrl: 'ng-weekly-scheduler/views/multi-slider.html',
       link: function (scope, element, attrs, schedulerCtrl) {
-        var conf = schedulerCtrl.config;
+        var loadFirst = true;
 
-        var minEventDuration = schedulerCtrl.config.defaultDuration;
-				if (schedulerCtrl.config.timeSlot === 'week') {
-					minEventDuration = schedulerCtrl.config.weekDuration;
-				} else if (schedulerCtrl.config.timeSlot === 'day') {
-					minEventDuration = schedulerCtrl.config.dayDuration;
-        } else if (schedulerCtrl.config.timeSlot === 'month') {
-					minEventDuration = schedulerCtrl.config.monthDuration;
-        }
+        attrs.$observe('timeSlot', function (data) {
+          console.log('Updated data ', data, scope.model.items);
+          if (loadFirst) {
+            loadFirst = true;
+            loadDirective();
+          }
+        }, true);
 
-        // The default scheduler block size when adding a new item
-        var defaultNewScheduleSize = parseInt(attrs.size) || minEventDuration;
+        // loadDirective();
 
-        var valToPixel = function (val) {
-          // var percent = val / (conf.nbWeeks);
-					var percent = val / (conf.nbDays);
-          return Math.floor(percent * element[0].clientWidth + 0.5);
-        };
+        function loadDirective() {
+          var conf = schedulerCtrl.config;
 
-        var pixelToVal = function (pixel) {
-          var percent = pixel / element[0].clientWidth;
-          // return Math.floor(percent * (conf.nbWeeks) + 0.5);
-					return Math.floor(percent * (conf.nbDays) + 0.5);
-        };
+          var minEventDuration = schedulerCtrl.config.defaultDuration;
+          if (schedulerCtrl.config.timeSlot === 'week') {
+            minEventDuration = schedulerCtrl.config.weekDuration;
+          } else if (schedulerCtrl.config.timeSlot === 'day') {
+            minEventDuration = schedulerCtrl.config.dayDuration;
+          } else if (schedulerCtrl.config.timeSlot === 'month') {
+            minEventDuration = schedulerCtrl.config.monthDuration;
+          }
 
-        var addSlot = function (start, end) {
-          start = start >= 0 ? start : 0;
-          // end = end <= conf.nbWeeks ? end : conf.nbWeeks;
-					end = end <= conf.nbDays ? end : conf.nbDays;
+          // The default scheduler block size when adding a new item
+          var defaultNewScheduleSize = parseInt(attrs.size) || minEventDuration;
 
-          // var startDate = timeService.addWeek(conf.minDate, start);
-          // var endDate = timeService.addWeek(conf.minDate, end);
+          var valToPixel = function (val) {
+            // var percent = val / (conf.nbWeeks);
+            var percent = val / (conf.nbDays);
+            return Math.floor(percent * element[0].clientWidth + 0.5);
+          };
 
-					var startDate = timeService.addDay(conf.minDate, start);
-					var endDate = timeService.addDay(conf.minDate, end);
+          var pixelToVal = function (pixel) {
+            var percent = pixel / element[0].clientWidth;
+            // return Math.floor(percent * (conf.nbWeeks) + 0.5);
+            return Math.floor(percent * (conf.nbDays) + 0.5);
+          };
 
-          scope.$apply(function () {
-            var item = scope.item;
-            if (!item.schedules) {
-              item.schedules = [];
-            }
-            item.schedules.push({start: startDate.toDate(), end: endDate.toDate()});
-          });
-        };
+          var addSlot = function (start, end) {
+            start = start >= 0 ? start : 0;
+            // end = end <= conf.nbWeeks ? end : conf.nbWeeks;
+            end = end <= conf.nbDays ? end : conf.nbDays;
 
-        var hoverElement = angular.element(element.find('div')[0]);
-        var hoverElementWidth = valToPixel(defaultNewScheduleSize);
+            // var startDate = timeService.addWeek(conf.minDate, start);
+            // var endDate = timeService.addWeek(conf.minDate, end);
 
-        hoverElement.css({
-          width: hoverElementWidth + 'px'
-        });
+            var startDate = timeService.addDay(conf.minDate, start);
+            var endDate = timeService.addDay(conf.minDate, end);
 
-        element.on('mousemove', function (e) {
-          var elOffX = element[0].getBoundingClientRect().left;
+            scope.$apply(function () {
+              var item = scope.item;
+              if (!item.schedules) {
+                item.schedules = [];
+              }
+              item.schedules.push({start: startDate.toDate(), end: endDate.toDate()});
+            });
+          };
+
+          var hoverElement = angular.element(element.find('div')[0]);
+          var hoverElementWidth = valToPixel(defaultNewScheduleSize);
 
           hoverElement.css({
-            left: e.pageX - elOffX - hoverElementWidth / 2 + 'px'
+            width: hoverElementWidth + 'px'
           });
-        });
 
-        hoverElement.on('click', function (event) {
-          if (!element.attr('no-add')) {
+          element.on('mousemove', function (e) {
             var elOffX = element[0].getBoundingClientRect().left;
-            var pixelOnClick = event.pageX - elOffX;
-            var valOnClick = pixelToVal(pixelOnClick);
 
-            var start = Math.round(valOnClick - defaultNewScheduleSize / 2);
-            var end = start + defaultNewScheduleSize;
+            hoverElement.css({
+              left: e.pageX - elOffX - hoverElementWidth / 2 + 'px'
+            });
+          });
 
-            addSlot(start, end);
-          }
-        });
+          hoverElement.on('click', function (event) {
+            if (!element.attr('no-add')) {
+              var elOffX = element[0].getBoundingClientRect().left;
+              var pixelOnClick = event.pageX - elOffX;
+              var valOnClick = pixelToVal(pixelOnClick);
+
+              var start = Math.round(valOnClick - defaultNewScheduleSize / 2);
+              var end = start + defaultNewScheduleSize;
+
+              addSlot(start, end);
+            }
+          });
+        }
       }
     };
   }]);
@@ -466,7 +480,7 @@ angular.module('weeklyScheduler')
         var loadFirst = true;
 
         attrs.$observe('timeSlot', function(data) {
-          console.log("Updated data ", data, scope.model.items);
+          console.log('Updated data ', data, scope.model.items);
           if (loadFirst) {
             loadFirst = true;
             loadDirective();
@@ -825,17 +839,17 @@ angular.module('weeklyScheduler')
   }]);
 angular.module('ngWeeklySchedulerTemplates', ['ng-weekly-scheduler/views/multi-slider.html', 'ng-weekly-scheduler/views/weekly-scheduler.html', 'ng-weekly-scheduler/views/weekly-slot.html']);
 
-angular.module('ng-weekly-scheduler/views/multi-slider.html', []).run(['$templateCache', function($templateCache) {
+angular.module('ng-weekly-scheduler/views/multi-slider.html', []).run(['$templateCache', function ($templateCache) {
   $templateCache.put('ng-weekly-scheduler/views/multi-slider.html',
     '<div class="slot ghost" ng-show="item.editable !== false && (!schedulerCtrl.config.monoSchedule || !item.schedules.length)">{{schedulerCtrl.config.labels.addNew || \'Add New\'}}</div><weekly-slot class=slot ng-class="{disable: item.editable === false}" ng-repeat="schedule in item.schedules" ng-model=schedule ng-model-options="{ updateOn: \'default blur\', debounce: { \'default\': 500, \'blur\': 0 } }"></weekly-slot>');
 }]);
 
-angular.module('ng-weekly-scheduler/views/weekly-scheduler.html', []).run(['$templateCache', function($templateCache) {
+angular.module('ng-weekly-scheduler/views/weekly-scheduler.html', []).run(['$templateCache', function ($templateCache) {
   $templateCache.put('ng-weekly-scheduler/views/weekly-scheduler.html',
-    '<div class=labels><div class="srow text-right">{{schedulerCtrl.config.labels.month || \'Month\'}}</div><div class="srow text-right">{{schedulerCtrl.config.labels.weekNb || \'Week number\'}}</div><div class="srow text-right">{{schedulerCtrl.config.labels.dayNb || \'Day #\'}}</div><div class=schedule-animate ng-repeat="item in schedulerCtrl.items" inject></div></div><div class=schedule-area-container><div class=schedule-area><div class="srow timestamps"><monthly-grid class=grid-container></monthly-grid></div><div class="srow timestamps weekly"><weekly-grid class=grid-container></weekly-grid></div><div class="srow timestamps daily"><daily-grid class=grid-container></daily-grid></div><div class="srow schedule-animate" ng-repeat="item in schedulerCtrl.items"><daily-grid class="grid-container striped" no-text></daily-grid><multi-slider index={{$index}}></multi-slider></div></div></div>');
+    '<div class=labels><div class="srow text-right">{{schedulerCtrl.config.labels.month || \'Month\'}}</div><div class="srow text-right">{{schedulerCtrl.config.labels.weekNb || \'Week number\'}}</div><div class="srow text-right">{{schedulerCtrl.config.labels.dayNb || \'Day #\'}}</div><div class=schedule-animate ng-repeat="item in schedulerCtrl.items" inject></div></div><div class=schedule-area-container><div class=schedule-area><div class="srow timestamps"><monthly-grid class=grid-container></monthly-grid></div><div class="srow timestamps weekly"><weekly-grid class=grid-container></weekly-grid></div><div class="srow timestamps daily"><daily-grid class=grid-container></daily-grid></div><div class="srow schedule-animate" ng-repeat="item in schedulerCtrl.items"><daily-grid class="grid-container striped" no-text></daily-grid><multi-slider index={{$index}} time-slot="{{ model.options.timeSlot }}"></multi-slider></div></div></div>');
 }]);
 
-angular.module('ng-weekly-scheduler/views/weekly-slot.html', []).run(['$templateCache', function($templateCache) {
+angular.module('ng-weekly-scheduler/views/weekly-slot.html', []).run(['$templateCache', function ($templateCache) {
   $templateCache.put('ng-weekly-scheduler/views/weekly-slot.html',
     '<div title="{{schedule.start | date}} - {{schedule.end | date}}"><div class="handle left" ondrag=resize ondragstart=startResizeStart ondragstop=endDrag handle></div><div ondrag=drag ondragstart=startDrag ondragstop=endDrag handle>{{schedule.start | changeDateToOnlyDateAndMonth}} - {{schedule.end | changeDateToOnlyDateAndMonth}}</div><div class="handle right" ondrag=resize ondragstart=startResizeEnd ondragstop=endDrag handle></div><div class=remove><span class="glyphicon glyphicon-remove"></span></div></div>');
 }]);
