@@ -6,6 +6,7 @@ angular.module('weeklyScheduler')
       require: ['^weeklyScheduler', 'ngModel'],
       templateUrl: 'ng-weekly-scheduler/views/weekly-slot.html',
       link: function (scope, element, attrs, ctrls) {
+        var dayWidthInPx = 0;
         var schedulerCtrl = ctrls[0], ngModelCtrl = ctrls[1];
         var conf = schedulerCtrl.config;
         var index = scope.$parent.$index;
@@ -184,14 +185,17 @@ angular.module('weeklyScheduler')
 
         ngModelCtrl.$render = function () {
           var ui = ngModelCtrl.$viewValue;
+          var eventDuration = ui.end - ui.start;
+
+          if (dayWidthInPx === 0) {
+            dayWidthInPx = containerEl[0].offsetWidth / conf.nbDays;
+          }
+
           var css = {
-            // left: ui.start / conf.nbWeeks * 100 + '%',
-            // width: (ui.end - ui.start) / conf.nbWeeks * 100 + '%'
-						left: ui.start / conf.nbDays * 100 + '%',
-						width: (ui.end - ui.start) / conf.nbDays * 100 + '%'
+            left: (ui.start * dayWidthInPx) + 'px',
+            width: (eventDuration * dayWidthInPx) + 'px',
           };
 
-          //$log.debug('RENDER :', index, scope.$index, css);
           element.css(css);
         };
 

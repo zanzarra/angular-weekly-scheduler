@@ -98,7 +98,6 @@ angular.module('weeklyScheduler')
               // First calculate configuration
               schedulerCtrl.config = config(items.reduce(function (result, item) {
                 var schedules = item.schedules;
-
                 return result.concat(schedules && schedules.length ?
                   // If in multiSlider mode, ensure a schedule array is present on each item
                   // Else only use first element of schedule array
@@ -148,10 +147,9 @@ angular.module('weeklyScheduler')
 
           }
         }
-        var loadFirst = true;
 
+        var loadFirst = true;
         attrs.$observe('timeSlot', function(data) {
-          console.log('Updated data ', data, scope.model.items);
           if (loadFirst) {
             loadFirst = true;
             loadDirective();

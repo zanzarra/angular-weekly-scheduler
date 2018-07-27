@@ -21,7 +21,7 @@ angular.module('demoApp', ['ngAnimate', 'weeklyScheduler', 'weeklySchedulerI18N'
 
       $scope.model = {
         locale: localeService.$locale.id,
-        options: {dayDuration: 3, weekDuration: 7, monthDuration: 30, timeSlot: 'month'},
+        options: {dayDuration: 3, weekDuration: 7, monthDuration: 30, timeSlot: 'day'},
         items: [{
           label: 'Item 1',
           editable: true,
