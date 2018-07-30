@@ -478,7 +478,7 @@ angular.module('weeklyScheduler')
         }
 
         var loadFirst = true;
-        attrs.$observe('timeSlot', function(data) {
+        attrs.$observe('timeSlot', function() {
           if (loadFirst) {
             loadFirst = true;
             loadDirective();
