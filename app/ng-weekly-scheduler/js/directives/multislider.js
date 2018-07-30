@@ -13,98 +13,85 @@ angular.module('weeklyScheduler')
   }])
 
   .directive('multiSlider', ['weeklySchedulerTimeService', function (timeService) {
+    var loadDirective = function(scope, element, attrs, schedulerCtrl) {
+      var conf = schedulerCtrl.config;
+
+      var minEventDuration = conf.defaultDuration;
+      if (conf.timeSlot === 'week') {
+        minEventDuration = conf.weekDuration;
+      } else if (conf.timeSlot === 'day') {
+        minEventDuration = conf.dayDuration;
+      } else if (conf.timeSlot === 'month') {
+        minEventDuration = conf.monthDuration;
+      }
+
+      // The default scheduler block size when adding a new item
+      var defaultNewScheduleSize = parseInt(attrs.size) || minEventDuration;
+
+      var valToPixel = function (val) {
+        var percent = val / (conf.nbDays);
+        return Math.floor(percent * element[0].clientWidth + 0.5);
+      };
+
+      var pixelToVal = function (pixel) {
+        var percent = pixel / element[0].clientWidth;
+        return Math.floor(percent * (conf.nbDays) + 0.5);
+      };
+
+      var addSlot = function (start, end) {
+        start = start >= 0 ? start : 0;
+        end = end <= conf.nbDays ? end : conf.nbDays;
+
+        var startDate = timeService.addDay(conf.minDate, start);
+        var endDate = timeService.addDay(conf.minDate, end);
+
+        scope.$apply(function () {
+          var item = scope.item;
+          if (!item.schedules) {
+            item.schedules = [];
+          }
+          item.schedules.push({start: startDate.toDate(), end: endDate.toDate()});
+        });
+      };
+
+      var hoverElement = angular.element(element.find('div')[0]);
+      var hoverElementWidth = valToPixel(defaultNewScheduleSize);
+
+      hoverElement.css({
+        width: hoverElementWidth + 'px'
+      });
+
+      element.on('mousemove', function (e) {
+        var elOffX = element[0].getBoundingClientRect().left;
+
+        hoverElement.css({
+          left: e.pageX - elOffX - hoverElementWidth / 2 + 'px'
+        });
+      });
+
+      hoverElement.unbind('click');
+      hoverElement.on('click', function (event) {
+        if (!element.attr('no-add')) {
+          var elOffX = element[0].getBoundingClientRect().left;
+          var pixelOnClick = event.pageX - elOffX;
+          var valOnClick = pixelToVal(pixelOnClick);
+
+          var start = Math.round(valOnClick - defaultNewScheduleSize / 2);
+          var end = start + defaultNewScheduleSize;
+
+          addSlot(start, end);
+        }
+      });
+    };
+
     return {
       restrict: 'E',
       require: '^weeklyScheduler',
       templateUrl: 'ng-weekly-scheduler/views/multi-slider.html',
       link: function (scope, element, attrs, schedulerCtrl) {
-        var loadFirst = true;
-
-        attrs.$observe('timeSlot', function (data) {
-          console.log('Updated data ', data, scope.model.items);
-          if (loadFirst) {
-            loadFirst = true;
-            loadDirective();
-          }
+        scope.$watch('model.options.timeSlot', function() {
+          loadDirective(scope, element, attrs, schedulerCtrl);
         }, true);
-
-        // loadDirective();
-
-        function loadDirective() {
-          var conf = schedulerCtrl.config;
-
-          var minEventDuration = schedulerCtrl.config.defaultDuration;
-          if (schedulerCtrl.config.timeSlot === 'week') {
-            minEventDuration = schedulerCtrl.config.weekDuration;
-          } else if (schedulerCtrl.config.timeSlot === 'day') {
-            minEventDuration = schedulerCtrl.config.dayDuration;
-          } else if (schedulerCtrl.config.timeSlot === 'month') {
-            minEventDuration = schedulerCtrl.config.monthDuration;
-          }
-
-          // The default scheduler block size when adding a new item
-          var defaultNewScheduleSize = parseInt(attrs.size) || minEventDuration;
-
-          var valToPixel = function (val) {
-            // var percent = val / (conf.nbWeeks);
-            var percent = val / (conf.nbDays);
-            return Math.floor(percent * element[0].clientWidth + 0.5);
-          };
-
-          var pixelToVal = function (pixel) {
-            var percent = pixel / element[0].clientWidth;
-            // return Math.floor(percent * (conf.nbWeeks) + 0.5);
-            return Math.floor(percent * (conf.nbDays) + 0.5);
-          };
-
-          var addSlot = function (start, end) {
-            start = start >= 0 ? start : 0;
-            // end = end <= conf.nbWeeks ? end : conf.nbWeeks;
-            end = end <= conf.nbDays ? end : conf.nbDays;
-
-            // var startDate = timeService.addWeek(conf.minDate, start);
-            // var endDate = timeService.addWeek(conf.minDate, end);
-
-            var startDate = timeService.addDay(conf.minDate, start);
-            var endDate = timeService.addDay(conf.minDate, end);
-
-            scope.$apply(function () {
-              var item = scope.item;
-              if (!item.schedules) {
-                item.schedules = [];
-              }
-              item.schedules.push({start: startDate.toDate(), end: endDate.toDate()});
-            });
-          };
-
-          var hoverElement = angular.element(element.find('div')[0]);
-          var hoverElementWidth = valToPixel(defaultNewScheduleSize);
-
-          hoverElement.css({
-            width: hoverElementWidth + 'px'
-          });
-
-          element.on('mousemove', function (e) {
-            var elOffX = element[0].getBoundingClientRect().left;
-
-            hoverElement.css({
-              left: e.pageX - elOffX - hoverElementWidth / 2 + 'px'
-            });
-          });
-
-          hoverElement.on('click', function (event) {
-            if (!element.attr('no-add')) {
-              var elOffX = element[0].getBoundingClientRect().left;
-              var pixelOnClick = event.pageX - elOffX;
-              var valOnClick = pixelToVal(pixelOnClick);
-
-              var start = Math.round(valOnClick - defaultNewScheduleSize / 2);
-              var end = start + defaultNewScheduleSize;
-
-              addSlot(start, end);
-            }
-          });
-        }
       }
     };
   }]);
